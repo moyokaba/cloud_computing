@@ -16,7 +16,10 @@ jobs:
         with:
           node-version: '20'
       - name: Install Dependencies
-        run: cd app && npm install
+        run: |
+          cd app
+          npm install
+          npm audit fix
       - name: Build Next.js App
         run: cd app && npm run build
       - name: Run Tests
