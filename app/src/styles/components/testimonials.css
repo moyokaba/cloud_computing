@@ -1,0 +1,100 @@
+/* src/styles/components/testimonials.css */
+
+.testimonial-header {
+    @apply text-center mb-16;
+  }
+  
+  .testimonial-title {
+    @apply text-4xl md:text-5xl font-bold mb-4
+           text-neutral-900 dark:text-white;
+  }
+  
+  .testimonial-description {
+    @apply text-lg text-neutral-600 dark:text-neutral-400
+           max-w-3xl mx-auto;
+  }
+  
+.testimonials-section {
+    @apply py-20 bg-neutral-50 dark:bg-neutral-900;
+  }
+  
+  .testimonials-content {
+    @apply max-w-7xl mx-auto px-4;
+  }
+  
+  .testimonials-wrapper {
+    @apply relative overflow-hidden;
+  }
+  
+  .testimonials-slider {
+    @apply flex transition-transform duration-500 ease-out;
+  }
+  
+  .testimonial-card {
+    @apply flex-shrink-0 bg-white dark:bg-neutral-800
+           rounded-xl p-6 shadow-sm flex flex-col gap-4;
+    width: calc(33.333% - 1rem); /* Desktop: 3 cards */
+    margin-right: 1rem;
+  }
+  
+  /* Rating Stars */
+  .rating {
+    @apply flex gap-1 mb-2;
+  }
+  
+  .star-icon {
+    @apply w-5 h-5 text-yellow-400;
+  }
+  
+  /* Content Styling */
+  .testimonial-title {
+    @apply text-xl font-semibold text-neutral-900 dark:text-white mb-2;
+  }
+  
+  .testimonial-text {
+    @apply text-neutral-600 dark:text-neutral-300 leading-relaxed;
+  }
+  
+  .testimonial-author {
+    @apply mt-auto flex flex-col;
+  }
+  
+  .author-name {
+    @apply font-medium text-neutral-900 dark:text-white;
+  }
+  
+  .testimonial-date {
+    @apply text-sm text-neutral-500 dark:text-neutral-400;
+  }
+  
+  /* Slider Indicators */
+  .slider-indicators {
+    @apply flex justify-center gap-2 mt-8;
+  }
+  
+  .indicator {
+    @apply w-2 h-2 rounded-full bg-neutral-300 dark:bg-neutral-700
+           transition-all duration-300;
+  }
+  
+  .indicator.active {
+    @apply w-4 bg-yellow-400;
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 1024px) {
+    .testimonial-card {
+      width: calc(50% - 1rem); /* Tablet: 2 cards */
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .testimonials-section {
+      @apply py-12;
+    }
+  
+    .testimonial-card {
+      width: 100%; /* Mobile: 1 card */
+      margin-right: 0;
+    }
+  }

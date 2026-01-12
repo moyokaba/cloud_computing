@@ -1,0 +1,338 @@
+/* text-drop.css */
+:root {
+  --text-drop-grey-color: #999999;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* We scope "body styles" to the component root instead of the real <body> */
+.text-drop-page {
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+  background-color: #ffffff;
+  color: #000000;
+  overflow-x: hidden;
+}
+
+/* Start Screen */
+
+.start {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  height: 100dvh;
+}
+
+.start::after {
+  content: "";
+  position: absolute;
+  top: 25%;
+  right: 20%;
+  z-index: -1;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  transform: rotate(-25deg);
+  background: radial-gradient(
+    circle,
+    rgba(255, 107, 0, 1) 33%,
+    rgba(255, 133, 52, 1) 54%,
+    rgba(255, 90, 0, 1) 75%,
+    rgba(255, 70, 0, 1) 83%,
+    rgba(200, 60, 0, 1) 98%,
+    rgba(180, 50, 0, 1) 100%
+  );
+  filter: blur(150px);
+}
+
+.start__box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  max-width: 575px;
+  text-align: center;
+}
+
+.start__logo {
+  display: block;
+  width: 120px;
+}
+
+.start__logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.start__heading {
+  margin: 30px 0 0;
+  color: white;
+  font-size: 6rem;
+  line-height: 1.1;
+  font-weight: 500;
+}
+
+.start__text {
+  margin: 30px 0 0;
+  font-size: 1.25rem;
+  line-height: 1.4;
+  font-weight: 500;
+  font-family: "Poppins", sans-serif;
+  color: var(--text-drop-grey-color);
+}
+
+@keyframes scroll {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: translateY(10px);
+  }
+}
+
+.scroll-marker {
+  position: absolute;
+  top: calc(100% + 80px);
+  left: calc(50% - 10px);
+  margin-top: auto;
+  width: 20px;
+  animation: scroll 2.5s ease infinite;
+}
+
+.scroll-marker img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Text Drop */
+
+.text-drop {
+  position: relative;
+  overflow: hidden;
+  padding: 5.75rem 0 12rem;
+  perspective: 2000px;
+}
+
+.text-drop::after {
+  content: "";
+  position: absolute;
+  top: 40%;
+  left: 5%;
+  z-index: -1;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 107, 0, 1) 33%,
+    rgba(255, 133, 52, 1) 54%,
+    rgba(255, 90, 0, 1) 75%,
+    rgba(255, 70, 0, 1) 83%,
+    rgba(200, 60, 0, 1) 98%,
+    rgba(180, 50, 0, 1) 100%
+  );
+  filter: blur(160px);
+}
+
+.text-drop::before {
+  content: "";
+  position: absolute;
+  top: 20%;
+  right: 15%;
+  z-index: -1;
+  width: 175px;
+  height: 175px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 107, 0, 1) 33%,
+    rgba(255, 133, 52, 1) 54%,
+    rgba(255, 90, 0, 1) 75%,
+    rgba(255, 70, 0, 1) 83%,
+    rgba(200, 60, 0, 1) 98%,
+    rgba(180, 50, 0, 1) 100%
+  );
+  filter: blur(100px);
+}
+
+.text-drop__line {
+  display: block;
+  text-align: center;
+  width: 100%;
+  font-size: 9.75vw;
+  line-height: 1.3;
+  font-weight: 500;
+  white-space: nowrap;
+  color: #000000;
+  transform-origin: 50% 0;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: rotateX(-120deg);
+  mix-blend-mode: difference;
+  transform-style: preserve-3d;
+}
+
+.text-drop__img-box {
+  position: absolute;
+  overflow: hidden;
+  opacity: 0;
+  border-radius: 0.5rem;
+  transition: opacity 0.5s;
+  width: 18vw;
+  height: 24vw;
+}
+
+.text-drop__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+
+.text-drop__img-box:nth-child(1) {
+  top: 5%;
+  left: 2%;
+  width: 18vw;
+  height: 24vw;
+}
+
+.text-drop__img-box:nth-child(2) {
+  top: 25%;
+  right: 3%;
+  width: 18vw;
+  height: 24vw;
+}
+
+.text-drop__img-box:nth-child(3) {
+  top: 50%;
+  right: 5%;
+  width: 20vw;
+  height: 26vw;
+}
+
+.text-drop__img-box:nth-child(4) {
+  top: 75%;
+  left: 3%;
+  z-index: 100;
+  width: 18vw;
+  height: 24vw;
+}
+
+@media screen and (max-width: 1024px) {
+  .text-drop {
+    padding: 5.75rem 0 15rem;
+  }
+
+  .text-drop__line {
+    font-size: 13.75vw;
+    line-height: 1.4;
+  }
+
+  .text-drop__img-box {
+    width: 28vw;
+    height: 35vw;
+  }
+
+  .text-drop__img-box:nth-child(1) {
+    top: 8%;
+    left: 2%;
+    width: 28vw;
+    height: 35vw;
+  }
+
+  .text-drop__img-box:nth-child(2) {
+    top: 28%;
+    right: 2%;
+    width: 28vw;
+    height: 35vw;
+  }
+
+  .text-drop__img-box:nth-child(3) {
+    top: 52%;
+    right: 3%;
+    width: 30vw;
+    height: 38vw;
+  }
+
+  .text-drop__img-box:nth-child(4) {
+    top: 76%;
+    left: 2%;
+    width: 28vw;
+    height: 35vw;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .start::after {
+    width: 200px;
+    height: 200px;
+    filter: blur(100px);
+  }
+
+  .text-drop::after {
+    width: 200px;
+    height: 200px;
+    filter: blur(110px);
+  }
+
+  .text-drop::before {
+    width: 100px;
+    height: 100px;
+    filter: blur(75px);
+  }
+}
+
+@media screen and (max-width: 575px) {
+  .start::after {
+    width: 125px;
+    height: 125px;
+    filter: blur(75px);
+  }
+
+  .text-drop::after {
+    top: 50%;
+    width: 125px;
+    height: 125px;
+    filter: blur(75px);
+  }
+
+  .text-drop::before {
+    width: 100px;
+    height: 100px;
+    filter: blur(75px);
+  }
+
+  .start__box {
+    max-width: 100%;
+  }
+
+  .start__heading {
+    font-size: 2.5rem;
+  }
+
+  .start__text {
+    font-size: 1rem;
+  }
+}
+
+@media screen and (min-height: 900px) {
+  .text-drop {
+    padding: 5.75rem 0 30rem;
+  }
+}
+
+
+

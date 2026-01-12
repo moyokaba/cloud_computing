@@ -1,0 +1,307 @@
+/* join-cta.css - Convergent CTA Animation Styles */
+
+/* ===== SECTION CONTAINER ===== */
+.join-cta-section {
+  position: relative;
+  z-index: 3;
+  /* Above marquee (1), below projects (5) */
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #0a0a0a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ===== BACKGROUND TEXT "CODEX" ===== */
+.join-bg-text-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  text-align: center;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.join-bg-text {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(15rem, 30vw, 35rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 107, 0, 0.15);
+  text-stroke: 2px rgba(255, 107, 0, 0.15);
+  user-select: none;
+  will-change: transform;
+  display: inline-block;
+}
+
+/* ===== SPOTLIGHT EFFECT ===== */
+.join-spotlight {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform;
+}
+
+.join-spotlight-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at center,
+      rgba(255, 107, 0, 0.25) 0%,
+      rgba(255, 107, 0, 0.1) 30%,
+      rgba(255, 107, 0, 0.05) 50%,
+      transparent 70%);
+  filter: blur(40px);
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* ===== HEADER CONTENT ===== */
+.join-header {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 10;
+  width: 90%;
+  max-width: 800px;
+}
+
+.join-header-content {
+  will-change: transform, opacity;
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+.join-header-content h2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.join-header-content p {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+}
+
+/* ===== FEATURES CONTAINER ===== */
+.join-features-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  will-change: opacity;
+}
+
+.join-feature {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 0.75rem 1.5rem;
+  will-change: top, left;
+  z-index: 5;
+}
+
+.join-feature-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 107, 0, 0.2) 0%, rgba(255, 107, 0, 0.1) 100%);
+  border: 2px solid rgba(255, 107, 0, 0.4);
+  border-radius: 0.5rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  will-change: width, height, border-radius;
+  box-shadow: 0 4px 20px rgba(255, 107, 0, 0.15);
+}
+
+.join-feature-text {
+  position: relative;
+  z-index: 1;
+  will-change: opacity;
+}
+
+.join-feature-text span {
+  font-family: 'DM Mono', 'Poppins', monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* ===== CTA BUTTON CONTAINER ===== */
+.join-cta-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  opacity: 0;
+  will-change: opacity;
+}
+
+.join-cta-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, #ff6b00 0%, #ff8534 100%);
+  border: none;
+  border-radius: 3rem;
+  cursor: pointer;
+  text-decoration: none;
+  will-change: width, height;
+  box-shadow:
+    0 4px 30px rgba(255, 107, 0, 0.4),
+    0 0 60px rgba(255, 107, 0, 0.2);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.join-cta-button:hover {
+  box-shadow:
+    0 6px 40px rgba(255, 107, 0, 0.6),
+    0 0 80px rgba(255, 107, 0, 0.3);
+  transform: scale(1.02);
+}
+
+.join-cta-text {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  opacity: 0;
+  will-change: opacity;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== SUBTEXT ===== */
+.join-subtext {
+  position: absolute;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 10;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.join-subtext p {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(0.875rem, 1.5vw, 1rem);
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 400;
+}
+
+/* ===== LENIS SMOOTH SCROLL ===== */
+html.lenis,
+html.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* ===== MEDIA QUERIES ===== */
+@media (max-width: 1024px) {
+  .join-spotlight {
+    width: 400px;
+    height: 400px;
+  }
+
+  .join-bg-text {
+    font-size: clamp(8rem, 25vw, 15rem);
+  }
+}
+
+@media (max-width: 768px) {
+  .join-spotlight {
+    width: 300px;
+    height: 300px;
+  }
+
+  .join-bg-text {
+    font-size: clamp(5rem, 20vw, 10rem);
+    -webkit-text-stroke: 1px rgba(255, 107, 0, 0.15);
+  }
+
+  .join-feature {
+    padding: 0.5rem 1rem;
+  }
+
+  .join-feature-text span {
+    font-size: 0.75rem;
+  }
+
+  .join-header {
+    top: 10%;
+  }
+
+  .join-subtext {
+    bottom: 10%;
+  }
+
+  .join-subtext p {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .join-spotlight {
+    width: 250px;
+    height: 250px;
+  }
+
+  .join-feature-text span {
+    font-size: 0.65rem;
+  }
+
+  .join-cta-text {
+    font-size: 0.875rem;
+  }
+}

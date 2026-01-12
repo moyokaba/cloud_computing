@@ -1,0 +1,242 @@
+/* codex-interactive-scroll.css */
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&display=swap");
+
+:root {
+  --base-100: #f1f1f0;
+  --base-200: #1a1a1a;
+  --accent: #ff4d00;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Manrope", sans-serif;
+  background-color: var(--base-100);
+  color: var(--base-200);
+  overflow-x: hidden;
+}
+
+h1 {
+  font-size: clamp(3rem, 8vw, 6rem);
+  letter-spacing: -0.1rem;
+  text-align: center;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 2rem;
+  letter-spacing: -0.05rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--accent);
+}
+
+h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #fff;
+}
+
+p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+img {
+  width: 100%;
+  display: block;
+  border-radius: 1rem;
+  object-fit: cover;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.hero,
+.outro {
+  height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.hero-hint {
+  color: #333;
+  font-weight: 600;
+}
+
+.spotlight {
+  position: relative;
+  padding: 10vh 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12rem;
+  min-height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.spotlight .row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4rem;
+  z-index: 2;
+  position: relative;
+  opacity: 1; /* prevents flicker */
+}
+
+.spotlight .col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.spotlight .card {
+  background-color: var(--base-200);
+  color: var(--base-100);
+  padding: 2.5rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* SVG STYLES - Scoped to .spotlight to avoid affecting global SVG icons */
+.spotlight .svg-path {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.spotlight .svg-path svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.spotlight .svg-path path {
+  stroke: var(--accent);
+  stroke-width: 50px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+/* Newsletter block (moved from inline styles) */
+.center-img {
+  justify-content: center;
+}
+
+.newsletter-col {
+  text-align: center;
+  max-width: 800px;
+  align-items: center;
+}
+
+.newsletter-card {
+  width: 100%;
+  text-align: center;
+  padding: 4rem;
+}
+
+.newsletter-title {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.newsletter-subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 0;
+}
+
+@media (max-width: 1000px) {
+  .spotlight .row {
+    flex-direction: column;
+    text-align: center;
+    gap: 3rem;
+  }
+  .spotlight .svg-path {
+    width: 90%;
+    opacity: 0.3;
+  }
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .hero,
+  .outro {
+    height: 60vh;
+    padding: 1.5rem;
+  }
+
+  h1 {
+    font-size: clamp(3rem, 12vw, 5rem);
+  }
+
+  .spotlight {
+    padding: 5vh 1rem;
+    gap: 6rem;
+  }
+
+  .spotlight .card {
+    padding: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  p {
+    font-size: 0.95rem;
+  }
+
+  .newsletter-card {
+    padding: 2rem;
+  }
+
+  .newsletter-title {
+    font-size: 2rem;
+  }
+
+  .newsletter-subtitle {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero,
+  .outro {
+    height: 50vh;
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 12vw, 3rem);
+  }
+
+  .spotlight {
+    gap: 4rem;
+  }
+
+  .spotlight .card {
+    padding: 1.25rem;
+    border-radius: 1rem;
+  }
+}

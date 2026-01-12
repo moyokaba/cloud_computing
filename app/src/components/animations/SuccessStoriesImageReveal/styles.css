@@ -1,0 +1,243 @@
+/* SuccessStoriesImageReveal Styles */
+
+.success-stories-section {
+  @apply min-h-screen flex flex-col items-center justify-center overflow-x-hidden py-20;
+  background-color: #080808;
+}
+
+/* Header */
+.success-stories-header {
+  @apply mb-16 text-center px-4;
+}
+
+.success-stories-title {
+  @apply text-4xl md:text-5xl font-bold mb-4 tracking-tight;
+  color: #ffffff;
+}
+
+.success-stories-subtitle {
+  @apply text-lg max-w-2xl mx-auto;
+  color: #737373;
+}
+
+/* Stories List - Desktop */
+.stories-list {
+  @apply w-full max-w-5xl px-6 md:px-10 relative z-10;
+}
+
+.stories-list-desktop {
+  @apply hidden md:block;
+}
+
+.story-item {
+  @apply relative py-8 md:py-11 border-b flex justify-between items-center
+         transition-opacity duration-300 cursor-pointer;
+  border-color: #262626;
+}
+
+.story-item:first-child {
+  @apply border-t;
+}
+
+/* Group hover effect - dims other items */
+.stories-list-desktop:hover .story-item {
+  opacity: 0.3;
+}
+
+.stories-list-desktop:hover .story-item:hover {
+  opacity: 1;
+}
+
+.story-item-content {
+  @apply flex items-baseline gap-3 md:gap-5;
+}
+
+.story-index {
+  @apply font-mono text-xs md:text-sm;
+  color: #525252;
+}
+
+.story-name {
+  @apply text-xl md:text-3xl font-semibold tracking-tight
+         transition-all duration-300;
+  color: #d4d4d4;
+}
+
+.story-item:hover .story-name {
+  @apply translate-x-4;
+  color: #ffffff;
+}
+
+.story-role {
+  @apply text-xs tracking-widest uppercase font-medium hidden sm:block;
+  color: #525252;
+}
+
+.story-linkedin-link {
+  @apply flex items-center gap-2 text-xs tracking-widest uppercase font-medium
+         transition-colors duration-300;
+  color: #525252;
+}
+
+.story-linkedin-link:hover {
+  color: #0077b5;
+}
+
+/* Floating Reveal Card */
+.floating-card {
+  @apply fixed top-0 left-0 w-72 pointer-events-none z-50
+         rounded-xl p-2 flex flex-col gap-4;
+  background-color: #161616;
+  border: 1px solid #404040;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -50%) scale(0.75);
+}
+
+.floating-card-image {
+  @apply w-full h-52 rounded-lg bg-cover bg-center;
+  background-color: #262626;
+}
+
+.floating-card-content {
+  @apply px-3 pb-3;
+}
+
+.floating-card-quote {
+  @apply text-sm leading-relaxed mb-4 italic;
+  color: #d4d4d4;
+}
+
+.floating-card-footer {
+  @apply flex justify-between items-center pt-3;
+  border-top: 1px solid #404040;
+}
+
+.floating-card-rating {
+  @apply text-xs;
+  color: #fbbf24;
+}
+
+.floating-card-linkedin {
+  @apply text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide
+         transition-colors duration-300;
+  background-color: #404040;
+  color: #ffffff;
+}
+
+.floating-card-linkedin:hover {
+  background-color: #0077b5;
+}
+
+/* Mobile: Accordion List */
+.stories-list-mobile {
+  @apply block w-full max-w-5xl px-6 sm:px-10 md:hidden;
+}
+
+/* Accordion Story Item */
+.story-item-accordion {
+  @apply cursor-pointer;
+}
+
+.story-item-accordion .story-item-content {
+  @apply flex justify-between items-center w-full;
+}
+
+/* Mobile Icon (+/-) - pushed to the right */
+.mobile-icon {
+  @apply text-xl font-light transition-transform duration-300 ml-auto;
+  color: #525252;
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .mobile-icon {
+    display: block;
+  }
+}
+
+.story-item-accordion.is-open .mobile-icon {
+  color: #f97316;
+}
+
+/* Accordion Content */
+.accordion-content {
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+  @apply flex flex-col gap-4 pb-0;
+}
+
+.story-item-accordion.is-open .accordion-content {
+  @apply pb-6;
+}
+
+.accordion-image {
+  @apply w-full h-48 sm:h-56 rounded-lg bg-cover bg-center;
+  background-color: #262626;
+}
+
+.accordion-quote {
+  @apply text-sm sm:text-base leading-relaxed italic;
+  color: #a3a3a3;
+}
+
+.accordion-footer {
+  @apply flex justify-between items-center pt-3;
+  border-top: 1px solid #262626;
+}
+
+.accordion-rating {
+  @apply text-xs;
+  color: #fbbf24;
+}
+
+.accordion-linkedin {
+  @apply flex items-center gap-2 text-sm font-medium transition-colors duration-300;
+  color: #0077b5;
+}
+
+.accordion-linkedin:hover {
+  color: #00a0dc;
+}
+
+/* Hide role on small mobile for accordion */
+@media (max-width: 480px) {
+  .story-item-accordion .story-role {
+    display: none;
+  }
+}
+
+/* CTA Section */
+.success-stories-cta {
+  @apply mt-16 text-center px-4;
+}
+
+.success-stories-cta-text {
+  @apply mb-6 text-lg font-medium;
+  color: #d4d4d4;
+}
+
+.success-stories-cta-button {
+  @apply px-8 py-3 font-semibold rounded-lg shadow-md
+         transition-all duration-300 transform;
+  background-color: #f97316;
+  color: #ffffff;
+}
+
+.success-stories-cta-button:hover {
+  @apply scale-105 shadow-lg;
+  background-color: #ea580c;
+}
+
+/* Accessibility - Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .story-item,
+  .story-name,
+  .floating-card,
+  .story-card-mobile,
+  .success-stories-cta-button {
+    transition: none !important;
+  }
+}

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Block access to API routes and Next.js system files
+Disallow: /api/
+Disallow: /_next/
+
+# Sitemap location
+Sitemap: https://www.codex-cmr.com/sitemap.xml

@@ -1,0 +1,25 @@
+
+.values-section {
+    @apply py-20 bg-white;
+  }
+  
+  .values-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8;
+  }
+  
+  .value-card {
+    @apply p-6 rounded-lg border border-orange-100 hover:border-orange-300 
+           transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1;
+  }
+  
+  .value-icon {
+    @apply text-orange-500 mb-4;
+  }
+  
+  .value-title {
+    @apply text-xl font-semibold mb-2 text-gray-800;
+  }
+  
+  .value-description {
+    @apply text-gray-600;
+  }

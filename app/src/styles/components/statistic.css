@@ -1,0 +1,38 @@
+
+    .statistics-card {
+      @apply relative bg-gradient-to-br from-gray-800 to-gray-900 
+             rounded-2xl p-8 text-center transform transition-all duration-300
+             hover:scale-105 hover:shadow-2xl;
+    }
+  
+    .statistics-icon {
+      @apply w-12 h-12 text-orange-500 mb-6;
+    }
+  
+    .statistics-number {
+      @apply text-4xl font-bold mb-2 bg-gradient-to-r from-orange-500 to-orange-600 
+             bg-clip-text text-transparent;
+    }
+  
+    .statistics-title {
+      @apply text-xl font-semibold mb-2 text-white;
+    }
+  
+    .statistics-description {
+      @apply text-gray-400 text-sm;
+    }
+  
+    /* Hover Animation für die Karten */
+    @keyframes borderGlow {
+      0% {
+        box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4);
+      }
+      100% {
+        box-shadow: 0 0 20px 0 rgba(249, 115, 22, 0);
+      }
+    }
+  
+    .statistics-card:hover::after {
+      animation: borderGlow 1.5s infinite;
+    }
+  

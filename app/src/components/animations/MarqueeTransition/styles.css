@@ -1,0 +1,182 @@
+/* marquee-transition.css - Brand-Consistent Opposing Marquee */
+/* Palette: Orange #ff6b00, Black #050505, White */
+
+/* ===== SECTION CONTAINER ===== */
+.marquee-section {
+  position: relative;
+  z-index: 1;
+  /* Ensures marquee stays below ProjectsStackSection during pinning */
+  width: 100%;
+  min-height: 45vh;
+  background-color: #050505;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ===== CURVED SVG TRANSITION (White to Black) ===== */
+.marquee-curve-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 120px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.marquee-curve-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ===== MAIN CONTENT ===== */
+.marquee-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 4rem 0;
+  gap: 0;
+}
+
+/* ===== MARQUEE ROWS ===== */
+.marquee-row {
+  width: 100%;
+  overflow: visible;
+  will-change: transform;
+}
+
+.marquee-row-1 {
+  /* Starts slightly to the right so it can scroll left */
+  transform: translateX(10%);
+}
+
+.marquee-row-2 {
+  /* Starts slightly to the left so it can scroll right */
+  transform: translateX(-10%);
+}
+
+/* ===== SPACER (Breathing Room) ===== */
+.marquee-spacer {
+  height: 2.5rem;
+}
+
+/* ===== TEXT STYLES ===== */
+.marquee-text {
+  font-family: 'Inter', 'Manrope', 'Poppins', sans-serif;
+  font-size: clamp(4rem, 12vw, 10rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  white-space: nowrap;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+/* Row 1: Transparent with thin white stroke (subtle) */
+.marquee-text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.25);
+  -webkit-text-fill-color: transparent;
+}
+
+/* Row 2 Option A: Solid Orange (brand accent) */
+.marquee-text-orange {
+  color: #ff6b00;
+}
+
+/* Row 2 Option B: Solid White (high contrast) */
+.marquee-text-white {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ===== BOTTOM FADE (Smooth transition to next section) ===== */
+.marquee-bottom-fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent 0%, #050505 100%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ===== MEDIA QUERIES ===== */
+@media (max-width: 1024px) {
+  .marquee-section {
+    min-height: 35vh;
+  }
+
+  .marquee-content {
+    padding: 3rem 0;
+  }
+
+  .marquee-text {
+    font-size: clamp(3rem, 10vw, 7rem);
+  }
+
+  .marquee-spacer {
+    height: 2rem;
+  }
+
+  .marquee-curve-container {
+    height: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .marquee-section {
+    min-height: 30vh;
+  }
+
+  .marquee-content {
+    padding: 2.5rem 0;
+  }
+
+  .marquee-text {
+    font-size: clamp(2.5rem, 9vw, 5rem);
+    letter-spacing: -0.02em;
+  }
+
+  .marquee-text-outline {
+    -webkit-text-stroke-width: 1px;
+  }
+
+  .marquee-spacer {
+    height: 1.5rem;
+  }
+
+  .marquee-curve-container {
+    height: 60px;
+  }
+
+  .marquee-bottom-fade {
+    height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .marquee-section {
+    min-height: 25vh;
+  }
+
+  .marquee-content {
+    padding: 2rem 0;
+  }
+
+  .marquee-text {
+    font-size: clamp(2rem, 8vw, 3.5rem);
+  }
+
+  .marquee-spacer {
+    height: 1rem;
+  }
+
+  .marquee-curve-container {
+    height: 40px;
+  }
+}

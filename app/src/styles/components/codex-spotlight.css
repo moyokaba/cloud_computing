@@ -1,0 +1,305 @@
+.codex-spotlight-container {
+  position: relative;
+  width: 100%;
+  min-height: 350px;
+  background: linear-gradient(to bottom, #000000 0%, #0a0a0a 100%);
+  overflow: hidden;
+  cursor: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+@media (min-width: 768px) {
+  .codex-spotlight-container {
+    min-height: 450px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .codex-spotlight-container {
+    min-height: 500px;
+  }
+}
+
+/* Ambient glow at bottom */
+.codex-ambient-glow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 120px;
+  background: radial-gradient(
+    ellipse 60% 40% at 50% 100%,
+    rgba(255, 107, 0, 0.15) 0%,
+    rgba(255, 133, 52, 0.08) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* Text wrapper for positioning */
+.codex-text-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Base text styling */
+.codex-text {
+  font-size: clamp(5rem, 25vw, 20rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Tablet sizing */
+@media (min-width: 768px) {
+  .codex-text {
+    font-size: clamp(8rem, 20vw, 16rem);
+  }
+}
+
+/* Desktop sizing */
+@media (min-width: 1024px) {
+  .codex-text {
+    font-size: clamp(12rem, 22vw, 22rem);
+  }
+}
+
+/* Muted base layer */
+.codex-text-base {
+  color: #1a1a1a;
+  text-shadow: 
+    0 0 80px rgba(255, 107, 0, 0.03),
+    0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Reflection effect */
+.codex-text-reflection {
+  position: absolute;
+  top: calc(50% + clamp(2.5rem, 12vw, 10rem));
+  transform: scaleY(-1);
+  background: linear-gradient(
+    to bottom,
+    rgba(26, 26, 26, 0.4) 0%,
+    transparent 60%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: blur(1px);
+  opacity: 0.3;
+}
+
+@media (min-width: 768px) {
+  .codex-text-reflection {
+    top: calc(50% + clamp(4rem, 10vw, 8rem));
+  }
+}
+
+@media (min-width: 1024px) {
+  .codex-text-reflection {
+    top: calc(50% + clamp(6rem, 11vw, 11rem));
+  }
+}
+
+/* Reveal layer with orange gradient */
+.codex-reveal-layer {
+  z-index: 10;
+}
+
+.codex-text-reveal {
+  background: linear-gradient(
+    135deg,
+    #ff6b00 0%,
+    #ff8534 50%,
+    #ffaa00 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 30px rgba(255, 107, 0, 0.6))
+          drop-shadow(0 0 60px rgba(255, 107, 0, 0.4));
+}
+
+/* Torch cursor effect */
+.codex-cursor-torch {
+  position: absolute;
+  pointer-events: none;
+  z-index: 20;
+  transform: translate(-50%, -100%);
+}
+
+/* Torch handle */
+.torch-handle {
+  width: 8px;
+  height: 30px;
+  background: linear-gradient(to bottom, #4a3728 0%, #2d1f14 100%);
+  border-radius: 2px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.torch-handle::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -3px;
+  width: 14px;
+  height: 8px;
+  background: linear-gradient(to bottom, #5c4332 0%, #3d2a1c 100%);
+  border-radius: 2px 2px 0 0;
+}
+
+/* Torch flame */
+.torch-flame {
+  position: relative;
+  width: 28px;
+  height: 40px;
+  margin: 0 auto;
+  transform: translateY(-8px);
+}
+
+.torch-flame::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 36px;
+  background: radial-gradient(
+    ellipse 50% 80% at 50% 100%,
+    #fff7e0 0%,
+    #ffcc00 15%,
+    #ff9500 35%,
+    #ff6b00 55%,
+    #ff4500 75%,
+    transparent 100%
+  );
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation: flicker 0.15s ease-in-out infinite alternate;
+}
+
+.torch-flame::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 24px;
+  background: radial-gradient(
+    ellipse 50% 80% at 50% 100%,
+    #ffffff 0%,
+    #fffacd 30%,
+    #ffd700 60%,
+    transparent 100%
+  );
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation: flicker-inner 0.1s ease-in-out infinite alternate;
+}
+
+/* Flame glow */
+.torch-glow {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 107, 0, 0.4) 0%,
+    rgba(255, 107, 0, 0.2) 30%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  animation: glow-pulse 1s ease-in-out infinite;
+}
+
+@keyframes flicker {
+  0% {
+    transform: translateX(-50%) scale(1) rotate(-1deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) scale(1.05, 0.95) rotate(1deg);
+    opacity: 0.95;
+  }
+}
+
+@keyframes flicker-inner {
+  0% {
+    transform: translateX(-50%) scale(1) rotate(1deg);
+  }
+  100% {
+    transform: translateX(-50%) scale(0.95, 1.05) rotate(-1deg);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* Responsive adjustments - Mobile */
+@media (max-width: 767px) {
+  .codex-spotlight-container {
+    min-height: 220px;
+    cursor: auto;
+  }
+  
+  .codex-cursor-torch {
+    display: none;
+  }
+  
+  /* Show a static subtle glow on mobile */
+  .codex-text-base {
+    color: #2a2a2a;
+    text-shadow: 
+      0 0 60px rgba(255, 107, 0, 0.2),
+      0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Show partial reveal on mobile with center glow */
+  .codex-reveal-layer {
+    opacity: 0.15 !important;
+    mask-image: radial-gradient(ellipse 60% 80% at 50% 50%, black 0%, transparent 70%) !important;
+    -webkit-mask-image: radial-gradient(ellipse 60% 80% at 50% 50%, black 0%, transparent 70%) !important;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .torch-flame {
+    width: 32px;
+    height: 46px;
+  }
+  
+  .torch-flame::before {
+    width: 28px;
+    height: 42px;
+  }
+  
+  .torch-flame::after {
+    width: 16px;
+    height: 28px;
+  }
+}
+
