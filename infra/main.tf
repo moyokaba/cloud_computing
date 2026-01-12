@@ -42,6 +42,8 @@ resource "aws_instance" "app_server" {
   # Installation von Python beim Start
   user_data = <<-EOF
               #!/bin/bash
+              sleep 30
+
               # 1. System aktualisieren
               apt-get update -y
               apt-get install -y curl
@@ -49,6 +51,9 @@ resource "aws_instance" "app_server" {
               # 2. Node.js 20 installieren (WICHTIG für Next.js!)
               curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
               apt-get install -y nodejs
+
+              # Bestätigung ins Log schreiben
+              echo "Installation fertig!" > /home/ubuntu/install_done.txt
 
               # 3. Prüfen ob es geklappt hat (landet im System-Log)
               node -v
