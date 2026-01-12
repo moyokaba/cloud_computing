@@ -42,8 +42,17 @@ resource "aws_instance" "app_server" {
   # Installation von Python beim Start
   user_data = <<-EOF
               #!/bin/bash
-              apt-get update
-              apt-get install -y Next.js
+              # 1. System aktualisieren
+              apt-get update -y
+              apt-get install -y curl
+
+              # 2. Node.js 20 installieren (WICHTIG für Next.js!)
+              curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+              apt-get install -y nodejs
+
+              # 3. Prüfen ob es geklappt hat (landet im System-Log)
+              node -v
+              npm -v
               EOF
 
   tags = {
