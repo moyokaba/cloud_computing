@@ -68,6 +68,9 @@ jobs:
         # Wir holen die IP aus dem Terraform Output
         run: echo "SERVER_IP=$(terraform -chdir=infra output -raw server_ip)" >> $GITHUB_ENV
 
+      - name: Wait for Server Init
+        run: sleep 180 
+
       # C. App Code auf den Server kopieren (via SCP)
       - name: Deploy App Code
         uses: appleboy/scp-action@master
@@ -79,8 +82,6 @@ jobs:
           target: "/home/ubuntu/myapp"
 
       # D. App starten (via SSH)
-      - name: Wait for Server Init
-        run: sleep 180 
       - name: Start App
         uses: appleboy/ssh-action@master
         with:
