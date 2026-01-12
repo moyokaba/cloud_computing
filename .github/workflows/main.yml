@@ -15,8 +15,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-      - name: Install npm (if missing)
-        run: sudo apt-get update && sudo apt-get install -y npm
       - name: Install Dependencies
         run: cd app && npm install
       - name: Build Next.js App
@@ -87,11 +85,23 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Install Node.js 20 and pm2 if missing
+            if ! command -v npm >/dev/null 2>&1; then
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+              sudo apt-get update
+              sudo apt-get install -y nodejs build-essential
+              sudo npm install -g pm2
+            fi
+
             cd /home/ubuntu/myapp/app
             npm install --production
-            # Prozess killen falls er schon läuft
+
+            # stop running app if exists
             sudo pkill -f "node.*next" || true
-            # Next.js App im Hintergrund starten (auf Port 3000)
-            nohup npm start > log.txt 2>&1 &
-            sleep 2
+            pm2 delete myapp || true
+
+            # start the app with pm2
+            pm2 start npm --name myapp -- start
+            pm2 save
+
             echo "Next.js App gestartet!"
