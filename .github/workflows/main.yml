@@ -89,28 +89,22 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # 1. Debugging: Zeig uns den Speicher an
-            echo "--- Speicher vor dem Start ---"
+            # Zeige uns, wie viel Speicher wir haben (zur Kontrolle)
             free -h
             
             cd /home/ubuntu/myapp/app
             
-            # 2. Abhängigkeiten installieren
+            # Installieren
             npm install
             
-            # 3. App bauen (mit Speicherlimit für Node, damit er nicht platzt)
-            export NODE_OPTIONS="--max-old-space-size=1536"
+            # WICHTIG: Wir erlauben Node.js, bis zu 3GB Speicher zu nutzen (RAM + Swap)
+            export NODE_OPTIONS="--max-old-space-size=3072"
+            
+            # Bauen (Das ist der kritische Moment)
             npm run build
             
-            # 4. Kurze Pause zum "Durchatmen" für den Server (Speicher leeren)
-            sleep 10
-            
-            # 5. Alte Prozesse beenden (Vorsichtiger)
-            # Wir ignorieren Fehler, falls nichts läuft
+            # Aufräumen & Starten
             sudo pkill -f "node" || true
-            sleep 5
-            
-            # 6. App starten
             nohup npm start > log.txt 2>&1 &
-            
-            echo "Deployment Befehl gesendet!"
+            sleep 2
+            echo "Deployment erfolgreich!"

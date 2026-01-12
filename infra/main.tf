@@ -44,11 +44,11 @@ resource "aws_instance" "app_server" {
   # Installation von Python beim Start
   user_data = <<-EOF
               #!/bin/bash
-              # FORCE REBUILD v4 (Version hochzählen erzwingt Neubau)
+              # FORCE REBUILD v5 (Version hochzählen erzwingt Neubau)
               sleep 30
               
               # --- 1. Swap Speicher anlegen (WICHTIG gegen Abstürze!) ---
-              fallocate -l 2G /swapfile
+              fallocate -l 4G /swapfile
               chmod 600 /swapfile
               mkswap /swapfile
               swapon /swapfile
