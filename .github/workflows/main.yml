@@ -89,23 +89,19 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Install Node.js 20 and pm2 if missing
-            if ! command -v npm >/dev/null 2>&1; then
-              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-              sudo apt-get update
-              sudo apt-get install -y nodejs build-essential
-              sudo npm install -g pm2
-            fi
-
             cd /home/ubuntu/myapp/app
-            npm install --production
-
-            # stop running app if exists
-            sudo pkill -f "node.*next" || true
-            pm2 delete myapp || true
-
-            # start the app with pm2
-            pm2 start npm --name myapp -- start
-            pm2 save
-
-            echo "Next.js App gestartet!"
+            
+            # Abhängigkeiten installieren
+            npm install
+            
+            # App bauen (Das braucht den Swap-Speicher!)
+            npm run build
+            
+            # Prozess killen falls er schon läuft
+            sudo pkill -f "node" || true
+            
+            # App starten
+            nohup npm start > log.txt 2>&1 &
+            
+            sleep 5
+            echo "Deployment erfolgreich!"

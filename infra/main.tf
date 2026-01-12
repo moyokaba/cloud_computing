@@ -44,22 +44,23 @@ resource "aws_instance" "app_server" {
   # Installation von Python beim Start
   user_data = <<-EOF
               #!/bin/bash
+              # FORCE REBUILD v4 (Version hochzählen erzwingt Neubau)
               sleep 30
-
-              # 1. System aktualisieren
+              
+              # --- 1. Swap Speicher anlegen (WICHTIG gegen Abstürze!) ---
+              fallocate -l 2G /swapfile
+              chmod 600 /swapfile
+              mkswap /swapfile
+              swapon /swapfile
+              echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab
+              
+              # --- 2. Installationen ---
               apt-get update -y
-              apt-get install -y curl
-
-              # 2. Node.js 20 installieren (WICHTIG für Next.js!)
+              apt-get install -y curl unzip
               curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
               apt-get install -y nodejs
-
-              # Bestätigung ins Log schreiben
+              
               echo "Installation fertig!" > /home/ubuntu/install_done.txt
-
-              # 3. Prüfen ob es geklappt hat (landet im System-Log)
-              node -v
-              npm -v
               EOF
 
   tags = {
