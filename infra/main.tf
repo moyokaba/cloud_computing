@@ -35,7 +35,7 @@ resource "aws_security_group" "app_sg" {
 # 4. Der Server
 resource "aws_instance" "app_server" {
   ami           = "ami-0a628e1e89aaedf80" # Ubuntu 24.04 in Frankfurt (prüfen!)
-  instance_type = "t2.micro"
+  instance_type = "t3.micro"
   key_name      = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.app_sg.id]
 
