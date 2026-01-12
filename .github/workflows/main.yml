@@ -89,19 +89,28 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # 1. Debugging: Zeig uns den Speicher an
+            echo "--- Speicher vor dem Start ---"
+            free -h
+            
             cd /home/ubuntu/myapp/app
             
-            # Abhängigkeiten installieren
+            # 2. Abhängigkeiten installieren
             npm install
             
-            # App bauen (Das braucht den Swap-Speicher!)
+            # 3. App bauen (mit Speicherlimit für Node, damit er nicht platzt)
+            export NODE_OPTIONS="--max-old-space-size=1536"
             npm run build
             
-            # Prozess killen falls er schon läuft
-            sudo pkill -f "node" || true
+            # 4. Kurze Pause zum "Durchatmen" für den Server (Speicher leeren)
+            sleep 10
             
-            # App starten
+            # 5. Alte Prozesse beenden (Vorsichtiger)
+            # Wir ignorieren Fehler, falls nichts läuft
+            sudo pkill -f "node" || true
+            sleep 5
+            
+            # 6. App starten
             nohup npm start > log.txt 2>&1 &
             
-            sleep 5
-            echo "Deployment erfolgreich!"
+            echo "Deployment Befehl gesendet!"
