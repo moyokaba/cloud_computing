@@ -76,6 +76,8 @@ jobs:
           target: "/home/ubuntu/myapp"
 
       # D. App starten (via SSH)
+      - name: Wait for Server Init
+        run: sleep 180 
       - name: Start App
         uses: appleboy/ssh-action@master
         with:
