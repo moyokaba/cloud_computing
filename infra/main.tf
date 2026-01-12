@@ -39,12 +39,18 @@ resource "aws_instance" "app_server" {
   key_name      = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.app_sg.id]
 
+  # ---> NEU: Wir vergrößern die Festplatte auf 15 GB <---
+  root_block_device {
+    volume_size = 15     # 15 GB Platz
+    volume_type = "gp3"  # Schnellerer Speichertyp
+  }
+
   user_data_replace_on_change = true
 
   # Installation von Python beim Start
   user_data = <<-EOF
               #!/bin/bash
-              # FORCE REBUILD v5 (Version hochzählen erzwingt Neubau)
+              # FORCE REBUILD v6 (Version hochzählen erzwingt Neubau)
               sleep 30
               
               # --- 1. Swap Speicher anlegen (WICHTIG gegen Abstürze!) ---
