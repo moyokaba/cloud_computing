@@ -39,6 +39,8 @@ resource "aws_instance" "app_server" {
   key_name      = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.app_sg.id]
 
+  user_data_replace_on_change = true
+
   # Installation von Python beim Start
   user_data = <<-EOF
               #!/bin/bash
