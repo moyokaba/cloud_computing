@@ -23,7 +23,19 @@ jobs:
       - name: Build Next.js App
         run: cd app && npm run build
       - name: Run Tests
-        run: cd app && npm run test 2>/dev/null || true # Tests sind optional
+        run: cd app && npm run test 2>/dev/null || true
+      
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: nextjs-build
+          path: |
+            app/.next
+            app/public
+            app/package.json
+            app/package-lock.json
+            app/next.config.mjs
+          retention-days: 1
 
   validate-infra:
     name: 2. Validate Terraform
@@ -34,15 +46,21 @@ jobs:
       - name: Terraform Init
         run: terraform -chdir=infra init -backend=false
       - name: Terraform Validate
-        run: terraform -chdir=infra validate # Prüft Syntax-Fehler im IaC Code
+        run: terraform -chdir=infra validate
 
-  # JOB 2: DEPLOYMENT (Nur wenn Tests erfolgreich waren)
+  # JOB 2: DEPLOYMENT
   deploy:
     name: 3. Deploy Infra & App
-    needs: [test-app, validate-infra] # Warten auf Tests!
+    needs: [test-app, validate-infra]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: nextjs-build
+          path: app-build
 
       # A. Terraform Setup
       - uses: hashicorp/setup-terraform@v2
@@ -55,33 +73,30 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
 
-      # B. Infrastruktur bauen (IaC)
+      # B. Infrastruktur bauen
       - name: Terraform Init
         run: terraform -chdir=infra init
       
       - name: Terraform Apply
-        # Wir übergeben den Public Key aus den Secrets an Terraform
         run: terraform -chdir=infra apply -auto-approve -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
       
       - name: Get Server IP
         id: get_ip
-        # Wir holen die IP aus dem Terraform Output
         run: echo "SERVER_IP=$(terraform -chdir=infra output -raw server_ip)" >> $GITHUB_ENV
 
       - name: Wait for Server Init
         run: sleep 180 
 
-      # C. App Code auf den Server kopieren (via SCP)
-      - name: Deploy App Code
+      - name: Deploy Built App
         uses: appleboy/scp-action@master
         with:
           host: ${{ env.SERVER_IP }}
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "app/*"
+          source: "app-build/*"
           target: "/home/ubuntu/myapp"
+          strip_components: 1
 
-      # D. App starten (via SSH)
       - name: Start App
         uses: appleboy/ssh-action@master
         with:
@@ -89,20 +104,15 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-
-            cd /home/ubuntu/myapp/app
+            cd /home/ubuntu/myapp
             
-            # Installieren
-            npm install
+            # Nur Production-Dependencies installieren (KEIN Build!)
+            npm install --production --ignore-scripts
             
-            # WICHTIG: Wir erlauben Node.js, bis zu 3GB Speicher zu nutzen (RAM + Swap)
-            export NODE_OPTIONS="--max-old-space-size=3072"
-            
-            # Bauen (Das ist der kritische Moment)
-            npm run build
-            
-            # Aufräumen & Starten
+            # Alte Prozesse beenden
             sudo pkill -f "node" || true
+            
+            # App starten (Build ist schon fertig!)
             nohup npm start > log.txt 2>&1 &
             sleep 2
-            echo "Deployment erfolgreich!"
+            echo "✅ Deployment erfolgreich! App läuft mit vorgefertigtem Build."
