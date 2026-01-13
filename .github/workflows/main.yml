@@ -60,7 +60,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: nextjs-build
-          path: app-build
+          path: app/
 
       # A. Terraform Setup
       - uses: hashicorp/setup-terraform@v2
@@ -93,9 +93,9 @@ jobs:
           host: ${{ env.SERVER_IP }}
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "app-build/*"
-          target: "/home/ubuntu/myapp"
-          strip_components: 1
+          source: "app/*"
+          target: "/home/ubuntu/myapp/"
+          strip_components: 0
 
       - name: Start App
         uses: appleboy/ssh-action@master
@@ -104,15 +104,30 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/ubuntu/myapp
+            cd /home/ubuntu/myapp/app
+            
+            # Prüfen ob Build-Dateien vorhanden sind
+            if [ ! -d ".next" ]; then
+              echo "❌ Fehler: .next Verzeichnis nicht gefunden!"
+              exit 1
+            fi
             
             # Nur Production-Dependencies installieren (KEIN Build!)
-            npm install --production --ignore-scripts
+            npm install --production --omit=dev
             
             # Alte Prozesse beenden
             sudo pkill -f "node" || true
+            sleep 2
             
             # App starten (Build ist schon fertig!)
             nohup npm start > log.txt 2>&1 &
-            sleep 2
-            echo "✅ Deployment erfolgreich! App läuft mit vorgefertigtem Build."
+            sleep 3
+            
+            # Prüfen ob App läuft
+            if pgrep -f "node" > /dev/null; then
+              echo "✅ Deployment erfolgreich! App läuft."
+            else
+              echo "❌ App konnte nicht gestartet werden. Log:"
+              cat log.txt
+              exit 1
+            fi
