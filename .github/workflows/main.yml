@@ -89,9 +89,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Zeige uns, wie viel Speicher wir haben (zur Kontrolle)
-            free -h
-            
+
             cd /home/ubuntu/myapp/app
             
             # Installieren
