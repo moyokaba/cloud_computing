@@ -30,8 +30,8 @@ jobs:
         with:
           name: nextjs-build
           path: |
-            app/.next
-            app/public
+            app/.next/**/*
+            app/public/**/*
             app/package.json
             app/package-lock.json
             app/next.config.mjs
@@ -85,7 +85,7 @@ jobs:
         run: echo "SERVER_IP=$(terraform -chdir=infra output -raw server_ip)" >> $GITHUB_ENV
 
       - name: Wait for Server Init
-        run: sleep 60
+        run: sleep 180 
 
       - name: Deploy Built App
         uses: appleboy/scp-action@master
@@ -106,14 +106,19 @@ jobs:
           script: |
             cd /home/ubuntu/myapp/app
             
+            # Debug: Verzeichnisstruktur anzeigen
+            echo "=== Verzeichnisstruktur ==="
+            ls -la
+            echo "=== .next Inhalt ==="
+            ls -la .next/ || echo ".next nicht gefunden!"
+            
             # Prüfen ob Build-Dateien vorhanden sind
             if [ ! -d ".next" ]; then
               echo "❌ Fehler: .next Verzeichnis nicht gefunden!"
               exit 1
             fi
             
-            # Nur Production-Dependencies installieren (KEIN Build!)
-            npm install --production --omit=dev
+            npm install
             
             # Alte Prozesse beenden
             sudo pkill -f "node" || true
@@ -121,13 +126,15 @@ jobs:
             
             # App starten (Build ist schon fertig!)
             nohup npm start > log.txt 2>&1 &
-            sleep 3
+            sleep 5
             
             # Prüfen ob App läuft
             if pgrep -f "node" > /dev/null; then
               echo "✅ Deployment erfolgreich! App läuft."
+              echo "=== App Log (erste 20 Zeilen) ==="
+              head -20 log.txt
             else
-              echo "❌ App konnte nicht gestartet werden. Log:"
+              echo "❌ App konnte nicht gestartet werden. Vollständiges Log:"
               cat log.txt
               exit 1
             fi
