@@ -85,7 +85,7 @@ jobs:
         run: echo "SERVER_IP=$(terraform -chdir=infra output -raw server_ip)" >> $GITHUB_ENV
 
       - name: Wait for Server Init
-        run: sleep 180 
+        run: sleep 60
 
       - name: Deploy Built App
         uses: appleboy/scp-action@master
