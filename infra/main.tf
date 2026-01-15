@@ -11,27 +11,33 @@ variable "ssh_public_key" {
 
 # 3. Security Group (Firewall)
 resource "aws_security_group" "app_sg" {
-  name = "app_sg"
-  ingress { # SSH erlauben
-    from_port = 22
-    to_port   = 22
-    protocol  = "tcp"
+  name        = "app_security_group"
+  description = "Allow SSH and Next.js traffic"
+
+  # SSH pour le déploiement
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  ingress { # Web erlauben
-    from_port = 80
-    to_port   = 80
-    protocol  = "tcp"
+
+  # Port de l'application Next.js
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  egress { # Alles raus erlauben
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
+
+  # Autoriser toute sortie (pour télécharger les packages npm)
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
 # 4. Der Server
 resource "aws_instance" "app_server" {
   ami           = "ami-0a628e1e89aaedf80" # Ubuntu 24.04 in Frankfurt (prüfen!)
@@ -39,38 +45,21 @@ resource "aws_instance" "app_server" {
   key_name      = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.app_sg.id]
 
-  # ---> NEU: Wir vergrößern die Festplatte auf 15 GB <---
-  root_block_device {
-    volume_size = 15     # 15 GB Platz
-    volume_type = "gp3"  # Schnellerer Speichertyp
-  }
-
-  user_data_replace_on_change = true
-
-  # Installation von Python beim Start
-  user_data = <<-EOF
+  # Script de configuration automatique
+ user_data = <<-EOF
               #!/bin/bash
-              # FORCE REBUILD v6 (Version hochzählen erzwingt Neubau)
-              sleep 30
-              
-              # --- 1. Swap Speicher anlegen (WICHTIG gegen Abstürze!) ---
-              fallocate -l 4G /swapfile
-              chmod 600 /swapfile
-              mkswap /swapfile
-              swapon /swapfile
-              echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab
-              
-              # --- 2. Installationen ---
               apt-get update -y
-              apt-get install -y curl unzip
+              # Installation de Node.js 20
               curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
               apt-get install -y nodejs
-              
-              echo "Installation fertig!" > /home/ubuntu/install_done.txt
+              # Installation globale de PM2
+              npm install -g pm2
+              # On s'assure que le dossier de destination existe pour éviter des erreurs SCP
+              mkdir -p /home/ubuntu/myapp
+              chown ubuntu:ubuntu /home/ubuntu/myapp
               EOF
-
   tags = {
-    Name = "PipelineServer"
+    Name = "NextJs-Server"
   }
 }
 
