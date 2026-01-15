@@ -1,140 +1,92 @@
-name: DevOps Pipeline (Infra + App)
+# === Option A (empfohlen): Ersetze den bestehenden "deploy:" Job-Abschnitt durch diesen ===
+deploy:
+  name: 3. Deploy Infra & App
+  needs: [test-app, validate-infra]
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v3
 
-on:
-  push:
-    branches: [ main ]
+    - name: Download Build Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: nextjs-build
+        path: ./    # Artefakte in das Arbeitsverzeichnis extrahieren (erzeugt ./app/... wenn Upload app/... enthielt)
 
-jobs:
-  # JOB 1: QUALITÄT & TESTING
-  test-app:
-    name: 1. Test Application
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-      - name: Install Dependencies
-        run: |
-          cd app
-          npm install
-          npm audit fix
-      - name: Build Next.js App
-        run: cd app && npm run build
-      - name: Run Tests
-        run: cd app && npm run test 2>/dev/null || true
-      
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: nextjs-build
-          path: |
-            app/.next/**/*
-            app/public/**/*
-            app/package.json
-            app/package-lock.json
-            app/next.config.mjs
-          retention-days: 1
+    # A. Terraform Setup
+    - uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_wrapper: false
 
-  validate-infra:
-    name: 2. Validate Terraform
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: hashicorp/setup-terraform@v2
-      - name: Terraform Init
-        run: terraform -chdir=infra init -backend=false
-      - name: Terraform Validate
-        run: terraform -chdir=infra validate
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-central-1
 
-  # JOB 2: DEPLOYMENT
-  deploy:
-    name: 3. Deploy Infra & App
-    needs: [test-app, validate-infra]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+    # B. Infrastruktur bauen
+    - name: Terraform Init
+      run: terraform -chdir=infra init
 
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: nextjs-build
-          path: app/
+    - name: Terraform Apply
+      run: terraform -chdir=infra apply -auto-approve -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
 
-      # A. Terraform Setup
-      - uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_wrapper: false
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
+    - name: Get Server IP
+      id: get_ip
+      run: echo "SERVER_IP=$(terraform -chdir=infra output -raw server_ip)" >> $GITHUB_ENV
 
-      # B. Infrastruktur bauen
-      - name: Terraform Init
-        run: terraform -chdir=infra init
-      
-      - name: Terraform Apply
-        run: terraform -chdir=infra apply -auto-approve -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
-      
-      - name: Get Server IP
-        id: get_ip
-        run: echo "SERVER_IP=$(terraform -chdir=infra output -raw server_ip)" >> $GITHUB_ENV
+    - name: Wait for Server Init
+      run: sleep 180
 
-      - name: Wait for Server Init
-        run: sleep 180 
+    - name: Deploy Built App
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ env.SERVER_IP }}
+        username: ubuntu
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "app"              # Ganze 'app' directory kopieren (inkl. versteckter Ordner wie .next)
+        target: "/home/ubuntu/myapp/"
+        strip_components: 0
 
-      - name: Deploy Built App
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ env.SERVER_IP }}
-          username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "app/*"
-          target: "/home/ubuntu/myapp/"
-          strip_components: 0
+    - name: Start App
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ env.SERVER_IP }}
+        username: ubuntu
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /home/ubuntu/myapp/app
 
-      - name: Start App
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ env.SERVER_IP }}
-          username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /home/ubuntu/myapp/app
-            
-            # Debug: Verzeichnisstruktur anzeigen
-            echo "=== Verzeichnisstruktur ==="
-            ls -la
-            echo "=== .next Inhalt ==="
-            ls -la .next/ || echo ".next nicht gefunden!"
-            
-            # Prüfen ob Build-Dateien vorhanden sind
-            if [ ! -d ".next" ]; then
-              echo "❌ Fehler: .next Verzeichnis nicht gefunden!"
-              exit 1
-            fi
-            
-            npm install
-            
-            # Alte Prozesse beenden
-            sudo pkill -f "node" || true
-            sleep 2
-            
-            # App starten (Build ist schon fertig!)
-            nohup npm start > log.txt 2>&1 &
-            sleep 5
-            
-            # Prüfen ob App läuft
-            if pgrep -f "node" > /dev/null; then
-              echo "✅ Deployment erfolgreich! App läuft."
-              echo "=== App Log (erste 20 Zeilen) ==="
-              head -20 log.txt
-            else
-              echo "❌ App konnte nicht gestartet werden. Vollständiges Log:"
-              cat log.txt
-              exit 1
-            fi
+          # Debug: Verzeichnisstruktur anzeigen
+          echo "=== Verzeichnisstruktur ==="
+          ls -la
+          echo "=== .next Inhalt ==="
+          ls -la .next/ || echo ".next nicht gefunden!"
+
+          # Prüfen ob Build-Dateien vorhanden sind
+          if [ ! -d ".next" ]; then
+            echo "❌ Fehler: .next Verzeichnis nicht gefunden!"
+            exit 1
+          fi
+
+          # Produktion-only Installation (schneller / weniger Speicherbedarf)
+          npm install --production
+
+          # Alte Prozesse beenden
+          sudo pkill -f "node" || true
+          sleep 2
+
+          # App starten (Build ist schon fertig!)
+          nohup npm start > log.txt 2>&1 &
+          sleep 5
+
+          # Prüfen ob App läuft
+          if pgrep -f "node" > /dev/null; then
+            echo "✅ Deployment erfolgreich! App läuft."
+            echo "=== App Log (erste 20 Zeilen) ==="
+            head -20 log.txt
+          else
+            echo "❌ App konnte nicht gestartet werden. Vollständiges Log:"
+            cat log.txt
+            exit 1
+          fi
