@@ -16,6 +16,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm' # Accélère les builds futurs
+          cache-dependency-path: app/package-lock.json
 
       - name: Build App
         run: |
