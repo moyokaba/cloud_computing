@@ -1,173 +1,89 @@
-name: Build and Deploy Next.js App
+name: Deploy App to AWS
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  AWS_REGION: eu-central-1
+    branches: [ main ]
 
 jobs:
-  # ============================================
-  # JOB 1: Provisionner l'infrastructure avec Terraform
-  # ============================================
-  terraform:
-    name: Terraform Infrastructure
+  # ÉTAPE 1 : Préparation de l'application
+  build-and-test:
     runs-on: ubuntu-latest
-    outputs:
-      server_ip: ${{ steps.tf_output.outputs.server_ip }}
-
     steps:
-      - name: Checkout du code
-        uses: actions/checkout@v4
-
-      - name: Configurer AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Générer la clé SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.6.0
-          terraform_wrapper: false
-
-      - name: Terraform Init
-        working-directory: ./infra
-        run: terraform init
-
-      - name: Terraform Plan
-        working-directory: ./infra
-        run: |
-          terraform plan \
-            -var="ssh_public_key=$(cat ~/.ssh/id_rsa.pub)" \
-            -out=tfplan
-
-      - name: Terraform Apply
-        working-directory: ./infra
-        run: terraform apply -auto-approve tfplan
-
-      - name: Récupérer l'IP du serveur
-        id: tf_output
-        working-directory: ./infra
-        run: |
-          SERVER_IP=$(terraform output -raw instance_public_ip)
-          echo "server_ip=$SERVER_IP" >> $GITHUB_OUTPUT
-
-  # ============================================
-  # JOB 2: Build de l'application Next.js (en parallèle avec Terraform)
-  # ============================================
-  build:
-    name: Build Next.js
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout du code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'npm' # Accélère les builds futurs
 
-      - name: Installer les dépendances
-        run: npm ci
-
-      - name: Build de l'application
-        run: npm run build
-        env:
-          NEXT_TELEMETRY_DISABLED: 1
-
-      - name: Préparer l'artifact
+      - name: Build App
         run: |
-          mkdir -p deploy
-          cp -r .next deploy/
-          cp -r public deploy/ 2>/dev/null || true
-          cp package.json deploy/
-          cp package-lock.json deploy/
-          cp next.config.* deploy/ 2>/dev/null || true
+          cd app
+          npm ci
+          npm run build
 
-      - name: Upload artifact
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nextjs-build
-          path: deploy/
+          name: app-bundle
+          path: |
+            app/.next
+            app/public
+            app/package.json
+            app/next.config.mjs
           retention-days: 1
 
-  # ============================================
-  # JOB 3: Déployer sur le serveur EC2
-  # ============================================
+  # ÉTAPE 2 : Infrastructure et Déploiement
   deploy:
-    name: Deploy to EC2
+    needs: build-and-test
     runs-on: ubuntu-latest
-    needs: [terraform, build]
-
     steps:
-      - name: Download artifact
+      - uses: actions/checkout@v4
+
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: nextjs-build
-          path: deploy/
+          name: app-bundle
+          path: app/
 
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ needs.terraform.outputs.server_ip }} >> ~/.ssh/known_hosts 2>/dev/null || true
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
 
-      - name: Attendre que le serveur soit prêt
+      - name: Terraform Apply
+        id: terraform
         run: |
-          for i in {1..30}; do
-            if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@${{ needs.terraform.outputs.server_ip }} "echo ok" 2>/dev/null; then
-              echo "Serveur prêt!"
-              break
-            fi
-            echo "Tentative $i/30..."
-            sleep 10
-          done
+          cd infra
+          terraform init
+          terraform apply -auto-approve -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
+          echo "SERVER_IP=$(terraform output -raw server_ip)" >> $GITHUB_ENV
 
-      - name: Déployer les fichiers
-        run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ needs.terraform.outputs.server_ip }} "mkdir -p ~/app"
-          scp -o StrictHostKeyChecking=no -r deploy/* ubuntu@${{ needs.terraform.outputs.server_ip }}:~/app/
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ env.SERVER_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "app/*"
+          target: "/home/ubuntu/myapp"
+          strip_components: 1
 
-      - name: Installer et démarrer l'application
-        run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ needs.terraform.outputs.server_ip }} << 'ENDSSH'
-            cd ~/app
-            npm ci --production
+      - name: Launch Application
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SERVER_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu/myapp
+            npm install --production
             
-            # Installation PM2 si absent
-            if ! command -v pm2 &> /dev/null; then
-              sudo npm install -g pm2
-            fi
-            
-            # Redémarrage de l'app
-            pm2 delete nextjs-app 2>/dev/null || true
-            sudo pm2 start npm --name "nextjs-app" -- start -- -p 80
-            sudo pm2 startup
-            sudo pm2 save
-          ENDSSH
-
-      - name: Vérification du déploiement
-        run: |
-          echo "Application disponible sur: http://${{ needs.terraform.outputs.server_ip }}"
-          sleep 10
-          curl -f --retry 3 --retry-delay 5 http://${{ needs.terraform.outputs.server_ip }} || echo "L'app démarre..."
+            # Installation de PM2 si absent et démarrage
+            sudo npm install -g pm2
+            pm2 delete next-app || true
+            pm2 start npm --name "next-app" -- start
+            pm2 save
