@@ -70,6 +70,13 @@ jobs:
           terraform apply -auto-approve -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
           echo "SERVER_IP=$(terraform output -raw server_ip)" >> $GITHUB_ENV
 
+      # --- ÉTAPE DE SÉCURITÉ AJOUTÉE ---
+      - name: Wait for SSH to be ready
+        run: |
+          echo "Waiting for SSH on ${{ env.SERVER_IP }}..."
+          timeout 300 bash -c 'until printf "" 2>>/dev/null >/dev/tcp/$0/22; do sleep 5; done' ${{ env.SERVER_IP }}
+          echo "SSH is up!"
+
       - name: Copy files to EC2
         uses: appleboy/scp-action@master
         with:
