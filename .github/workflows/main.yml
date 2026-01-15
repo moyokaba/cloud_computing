@@ -15,8 +15,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm' # Accélère les builds futurs
-          cache-dependency-path: app/package-lock.json
+          cache: 'npm'
+          # CORRECTIF 1 : On indique où se trouve le fichier lock
+          cache-dependency-path: app/package-lock.json 
 
       - name: Build App
         run: |
@@ -47,6 +48,12 @@ jobs:
         with:
           name: app-bundle
           path: app/
+
+      # CORRECTIF 2 : Installer Terraform sur le runner
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
 
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
@@ -82,8 +89,6 @@ jobs:
           script: |
             cd /home/ubuntu/myapp
             npm install --production
-            
-            # Installation de PM2 si absent et démarrage
             sudo npm install -g pm2
             pm2 delete next-app || true
             pm2 start npm --name "next-app" -- start
