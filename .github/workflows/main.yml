@@ -110,6 +110,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           # On envoie tout le contenu du dossier téléchargé
           source: "app/."
+          rm: true 
+          tar_exec: true # Plus rapide et préserve mieux les structures"
           target: "/home/ubuntu/myapp"
           strip_components: 1
 
@@ -122,22 +124,14 @@ jobs:
           script: |
             cd /home/ubuntu/myapp
             
-            # 1. Vérification ultime
-            echo "--- Contenu du dossier après transfert ---"
-            ls -la
-            
-            if [ ! -d ".next" ]; then
-              echo "❌ ERREUR CRITIQUE : Le dossier .next est toujours absent !"
-              exit 1
-            fi
+            rm -rf node_modules
             
             # 2. Installation et démarrage
             npm install --production
             chmod -R +x node_modules/.bin
             sudo npm install -g pm2
             pm2 delete next-app || true
-            pm2 start npm --name "next-app" -- start
+            pm2 start npm --name "next-app" -- start -- -H 0.0.0.0
             pm2 save
-            pm2 logs next-app
             
             echo "✅ Application démarrée avec succès !"
