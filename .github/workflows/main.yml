@@ -6,6 +6,7 @@ on:
 
 jobs:
   # ÉTAPE 1 : Préparation de l'application
+ # ÉTAPE 1 : Préparation de l'application
   build-and-test:
     runs-on: ubuntu-latest
     steps:
@@ -16,23 +17,25 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          # CORRECTIF 1 : On indique où se trouve le fichier lock
-          cache-dependency-path: app/package-lock.json 
+          cache-dependency-path: app/package-lock.json
 
       - name: Build App
         run: |
           cd app
           npm ci
+          # On s'assure que le build est bien généré
           npm run build
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: app-bundle
+          # CORRECTIF : On utilise une syntaxe plus simple et robuste
           path: |
-            app/.next
-            app/public
+            app/.next/
+            app/public/
             app/package.json
+            app/package-lock.json
             app/next.config.mjs
           retention-days: 1
 
