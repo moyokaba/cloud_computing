@@ -100,3 +100,4 @@ jobs:
             pm2 delete next-app || true
             pm2 start npm --name "next-app" -- start
             pm2 save
+            pm2 logs next-app --lines 50
