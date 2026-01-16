@@ -133,6 +133,7 @@ jobs:
             
             # 2. Installation et démarrage
             npm install --production
+            chmod -R +x node_modules/.bin
             sudo npm install -g pm2
             pm2 delete next-app || true
             pm2 start npm --name "next-app" -- start
