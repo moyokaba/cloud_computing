@@ -60,7 +60,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-bundle
-          path: . # On télécharge à la racine du runner
+          path: app/ # On télécharge à la racine du runner
 
       - name: Verify Artifact Contents
         run: |
