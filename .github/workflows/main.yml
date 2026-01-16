@@ -83,10 +83,12 @@ jobs:
           host: ${{ env.SERVER_IP }}
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          # On liste explicitement le dossier .next pour ne pas l'oublier
-          source: "app/.next,app/public,app/package.json,app/next.config.mjs"
+          # CORRECTIF : On cible directement le dossier et on utilise 'dot: true' 
+          # pour inclure les fichiers cachés comme .next
+          source: "app/"
           target: "/home/ubuntu/myapp"
           strip_components: 1
+          overwrite: true
 
       - name: Launch Application
         uses: appleboy/ssh-action@master
@@ -97,15 +99,20 @@ jobs:
           script: |
             cd /home/ubuntu/myapp
             
-            # Vérification de sécurité
+            # 1. Vérification ultime
+            echo "--- Contenu du dossier après transfert ---"
+            ls -la
+            
             if [ ! -d ".next" ]; then
-              echo "❌ ERREUR : Le dossier .next est toujours absent du serveur !"
-              ls -la
+              echo "❌ ERREUR CRITIQUE : Le dossier .next est toujours absent !"
               exit 1
             fi
             
+            # 2. Installation et démarrage
             npm install --production
             sudo npm install -g pm2
             pm2 delete next-app || true
             pm2 start npm --name "next-app" -- start
             pm2 save
+            
+            echo "✅ Application démarrée avec succès !"
