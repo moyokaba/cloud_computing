@@ -61,6 +61,18 @@ jobs:
           name: app-bundle
           path: app/
 
+      - name: Verify Artifact Contents
+        run: |
+          echo "=== Vérification de l'artéfact téléchargé sur le runner GitHub ==="
+          ls -Rla app/
+          
+          if [ -d "app/.next" ]; then
+            echo "✅ SUCCÈS : Le dossier .next est bien présent dans l'artéfact téléchargé."
+          else
+            echo "❌ ERREUR : Le dossier .next est MANQUANT dans l'artéfact téléchargé !"
+            exit 1
+          fi
+
       # CORRECTIF 2 : Installer Terraform sur le runner
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
