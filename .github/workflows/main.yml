@@ -26,17 +26,26 @@ jobs:
           # On s'assure que le build est bien généré
           npm run build
 
+      # --- ÉTAPE DE LISTING AJOUTÉE ---
+      - name: List files for debugging
+        run: |
+          echo "=== Structure du dossier 'app' après le build ==="
+          ls -Rla app/
+          
+          echo "=== Vérification de la présence de .next ==="
+          if [ -d "app/.next" ]; then
+            echo "✅ Le dossier .next existe et contient :"
+            ls -la app/.next | head -n 10
+          else
+            echo "❌ ERREUR : Le dossier .next est INTROUVABLE"
+          fi
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: app-bundle
-          # CORRECTIF : On utilise une syntaxe plus simple et robuste
-          path: |
-            app/.next/
-            app/public/
-            app/package.json
-            app/package-lock.json
-            app/next.config.mjs
+          # On prend TOUT le dossier app, c'est plus sûr
+          path: app/
           retention-days: 1
 
   # ÉTAPE 2 : Infrastructure et Déploiement
@@ -86,12 +95,10 @@ jobs:
           host: ${{ env.SERVER_IP }}
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          # CORRECTIF : On cible directement le dossier et on utilise 'dot: true' 
-          # pour inclure les fichiers cachés comme .next
-          source: "app/"
+          # On envoie tout le contenu du dossier téléchargé
+          source: "app/*,app/**/.*" 
           target: "/home/ubuntu/myapp"
           strip_components: 1
-          overwrite: true
 
       - name: Launch Application
         uses: appleboy/ssh-action@master
