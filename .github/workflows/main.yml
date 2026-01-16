@@ -46,6 +46,7 @@ jobs:
           name: app-bundle
           # On prend TOUT le dossier app, c'est plus sûr
           path: app/
+          include-hidden-files: true
           retention-days: 1
 
   # ÉTAPE 2 : Infrastructure et Déploiement
