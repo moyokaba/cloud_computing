@@ -96,7 +96,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           # On envoie tout le contenu du dossier téléchargé
-          source: "app/*,app/**/.*" 
+          source: "app/."
           target: "/home/ubuntu/myapp"
           strip_components: 1
 
