@@ -126,15 +126,19 @@ jobs:
           script: |
             cd /home/ubuntu/myapp
             
+            # 1. Arrêter PM2 pour libérer les fichiers
+            pm2 delete next-app || true
+            
+            # 2. Nettoyage TOTAL (On supprime tout sauf le build et les configs)
+            # On ne garde que ce qui est nécessaire pour installer proprement
+            find . -maxdepth 1 ! -name '.next' ! -name 'public' ! -name 'package.json' ! -name 'package-lock.json' ! -name 'next.config.mjs' ! -name '.' -exec rm -rf {} +
             rm -rf node_modules
             
-            # 2. Installation et démarrage
+            # 3. Installation fraîche sur l'architecture Linux d'AWS
+            # Cela résout l'erreur de module manquant (image_498e6f.png)
+            npm cache clean --force
             npm install --production
-            chmod -R +x node_modules/.bin
-            sudo npm install -g pm2
-            pm2 delete next-app || true
+            
+            # 4. Relancer proprement
             pm2 start npm --name "next-app" -- start -- -H 0.0.0.0
             pm2 save
-            pm2 logs next-app --lines 50
-            
-            echo "✅ Application démarrée avec succès !"
