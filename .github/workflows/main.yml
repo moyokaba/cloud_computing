@@ -60,17 +60,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-bundle
-          path: . # On télécharge à la racine du runner
+          path: my-app-files # On télécharge à la racine du runner
 
       - name: Verify Artifact Contents
         run: |
-          echo "=== Vérification de l'artéfact téléchargé sur le runner GitHub ==="
-          ls -Rla app/
+          echo "=== Vérification de l'artéfact téléchargé ==="
+          # On liste le dossier de destination du téléchargement
+          ls -Rla my-app-files/
           
-          if [ -d "app/.next" ]; then
-            echo "✅ SUCCÈS : Le dossier .next est bien présent dans l'artéfact téléchargé."
+          if [ -d "my-app-files/.next" ]; then
+            echo "✅ SUCCÈS : Le dossier .next est présent."
           else
-            echo "❌ ERREUR : Le dossier .next est MANQUANT dans l'artéfact téléchargé !"
+            echo "❌ ERREUR : .next est MANQUANT dans my-app-files/"
             exit 1
           fi
 
@@ -108,12 +109,13 @@ jobs:
           host: ${{ env.SERVER_IP }}
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          # On envoie tout le contenu du dossier téléchargé
-          source: "app/."
-          rm: true 
-          tar_exec: true # Plus rapide et préserve mieux les structures"
+          # SOURCE : On prend tout ce qui est dans le dossier téléchargé
+          source: "my-app-files/"
           target: "/home/ubuntu/myapp"
+          # On retire le dossier 'my-app-files' au déballage sur le serveur
           strip_components: 1
+          # On exclut node_modules pour éviter les corruptions (image_2df270.png)
+          rm: true
 
       - name: Launch Application
         uses: appleboy/ssh-action@master
