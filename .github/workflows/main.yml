@@ -142,4 +142,4 @@ jobs:
             sudo npm install -g pm2
             pm2 start npm --name "next-app" -- start -- -H 0.0.0.0 -p 3000
             pm2 save
-            pm2 logs next-app --lines 50
+            
