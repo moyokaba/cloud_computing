@@ -126,19 +126,20 @@ jobs:
           script: |
             cd /home/ubuntu/myapp
             
-            # 1. Arrêter PM2 pour libérer les fichiers
+            # 1. On nettoie tout pour éviter les conflits de modules (image_498e6f.png)
             pm2 delete next-app || true
-            
-            # 2. Nettoyage TOTAL (On supprime tout sauf le build et les configs)
-            # On ne garde que ce qui est nécessaire pour installer proprement
-            find . -maxdepth 1 ! -name '.next' ! -name 'public' ! -name 'package.json' ! -name 'package-lock.json' ! -name 'next.config.mjs' ! -name '.' -exec rm -rf {} +
             rm -rf node_modules
             
-            # 3. Installation fraîche sur l'architecture Linux d'AWS
-            # Cela résout l'erreur de module manquant (image_498e6f.png)
-            npm cache clean --force
+            # 2. On installe les dépendances proprement sur Linux AWS
+            # Cela corrige l'erreur de module introuvable et de permission
             npm install --production
+            chmod -R +x node_modules/.bin
             
-            # 4. Relancer proprement
-            pm2 start npm --name "next-app" -- start -- -H 0.0.0.0
+            # 3. On s'assure que le build est là (image_22faa1.png)
+            if [ ! -d ".next" ]; then echo "❌ Erreur: .next absent"; exit 1; fi
+            
+            # 4. Lancement PM2
+            sudo npm install -g pm2
+            pm2 start npm --name "next-app" -- start -- -H 0.0.0.0 -p 3000
             pm2 save
+            pm2 logs next-app --lines 50
