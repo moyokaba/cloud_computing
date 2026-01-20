@@ -1,12 +1,4 @@
-# 1. Clé SSH
-resource "aws_key_pair" "deployer" {
-  key_name   = "deployer-key"
-  public_key = var.ssh_public_key
-}
 
-variable "ssh_public_key" {
-  type = string
-}
 
 # 2. Security Group (AVEC CORRECTIF LIFECYCLE)
 resource "aws_security_group" "app_sg" {
@@ -37,6 +29,16 @@ resource "aws_security_group" "app_sg" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+# 1. Clé SSH
+resource "aws_key_pair" "deployer" {
+  key_name   = "deployer-key"
+  public_key = var.ssh_public_key
+}
+
+variable "ssh_public_key" {
+  type = string
 }
 
 # 3. L'Instance EC2
