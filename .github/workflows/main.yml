@@ -23,6 +23,7 @@ jobs:
           cd app
           # Wir führen den Build durch
           npm ci
+          npm run build
 
       - name: Artefakte hochladen
         uses: actions/upload-artifact@v4
