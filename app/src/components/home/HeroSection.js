@@ -15,7 +15,7 @@ export const HeroSection = () => {
   const heroRef = hero3DContext?.heroRef;
 
   // Title and subtitle configuration
-  const titleText = "CODEX";
+  const titleText = "Cloud Computing";
   const subtitleLines = [
     "Notre ambition est de créer un véritable lieu de",
     "collaboration, où des individus de divers horizons",

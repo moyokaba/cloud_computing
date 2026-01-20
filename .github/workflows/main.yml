@@ -5,90 +5,61 @@ on:
     branches: [ main ]
 
 jobs:
-  # ÉTAPE 1 : Préparation de l'application
- # ÉTAPE 1 : Préparation de l'application
+  # SCHRITT 1: Anwendung vorbereiten
   build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
+
+      - name: Node.js einrichten
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: app/package-lock.json
 
-      - name: Build App
+      - name: App bauen
         run: |
           cd app
+          # Wir führen den Build durch
           npm ci
-          # On s'assure que le build est bien généré
-          npm run build
 
-      # --- ÉTAPE DE LISTING AJOUTÉE ---
-      - name: List files for debugging
-        run: |
-          echo "=== Structure du dossier 'app' après le build ==="
-          ls -Rla app/
-          
-          echo "=== Vérification de la présence de .next ==="
-          if [ -d "app/.next" ]; then
-            echo "✅ Le dossier .next existe et contient :"
-            ls -la app/.next | head -n 10
-          else
-            echo "❌ ERREUR : Le dossier .next est INTROUVABLE"
-          fi
-
-      - name: Upload Artifacts
+      - name: Artefakte hochladen
         uses: actions/upload-artifact@v4
         with:
           name: app-bundle
-          # On prend TOUT le dossier app, c'est plus sûr
+          # Wir nehmen den gesamten Ordner app, das ist sicherer
           path: app/
           include-hidden-files: true
           retention-days: 1
 
-  # ÉTAPE 2 : Infrastructure et Déploiement
+  # SCHRITT 2: Infrastruktur und Bereitstellung
   deploy:
     needs: build-and-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Artifacts
+      - name: Artefakte herunterladen
         uses: actions/download-artifact@v4
         with:
           name: app-bundle
-          path: my-app-files # On télécharge à la racine du runner
+          path: my-app-files # Wir laden in das Root-Verzeichnis des Runners herunter
 
-      - name: Verify Artifact Contents
-        run: |
-          echo "=== Vérification de l'artéfact téléchargé ==="
-          # On liste le dossier de destination du téléchargement
-          ls -Rla my-app-files/
-          
-          if [ -d "my-app-files/.next" ]; then
-            echo "✅ SUCCÈS : Le dossier .next est présent."
-          else
-            echo "❌ ERREUR : .next est MANQUANT dans my-app-files/"
-            exit 1
-          fi
-
-      # CORRECTIF 2 : Installer Terraform sur le runner
-      - name: Setup Terraform
+      # Terraform auf dem Runner installieren
+      - name: Terraform einrichten
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
 
-      - name: Configure AWS
+      - name: AWS konfigurieren
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
 
-      - name: Terraform Apply
+      - name: Terraform anwenden
         id: terraform
         run: |
           cd infra
@@ -96,28 +67,28 @@ jobs:
           terraform apply -auto-approve -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
           echo "SERVER_IP=$(terraform output -raw server_ip)" >> $GITHUB_ENV
 
-      # --- ÉTAPE DE SÉCURITÉ AJOUTÉE ---
-      - name: Wait for SSH to be ready
+      # --- HINZUGEFÜGTER SICHERHEITSSCHRITT ---
+      - name: Warten, bis SSH bereit ist
         run: |
-          echo "Waiting for SSH on ${{ env.SERVER_IP }}..."
+          echo "Warten auf SSH bei ${{ env.SERVER_IP }}..."
           timeout 300 bash -c 'until printf "" 2>>/dev/null >/dev/tcp/$0/22; do sleep 5; done' ${{ env.SERVER_IP }}
-          echo "SSH is up!"
+          echo "SSH ist bereit!"
 
-      - name: Copy files to EC2
+      - name: Dateien auf EC2 kopieren
         uses: appleboy/scp-action@master
         with:
           host: ${{ env.SERVER_IP }}
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          # SOURCE : On prend tout ce qui est dans le dossier téléchargé
+          # QUELLE: Wir nehmen alles aus dem heruntergeladenen Ordner
           source: "my-app-files/"
           target: "/home/ubuntu/myapp"
-          # On retire le dossier 'my-app-files' au déballage sur le serveur
+          # Wir entfernen den Ordner 'my-app-files' beim Entpacken auf dem Server
           strip_components: 1
-          # On exclut node_modules pour éviter les corruptions (image_2df270.png)
+          # Wir schließen node_modules aus, um Beschädigungen zu vermeiden (image_2df270.png)
           rm: true
 
-      - name: Launch Application
+      - name: Anwendung starten
         uses: appleboy/ssh-action@master
         with:
           host: ${{ env.SERVER_IP }}
@@ -125,20 +96,20 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu/myapp
-            
-            # 1. On nettoie tout pour éviter les conflits de modules (image_498e6f.png)
+
+            # 1. Wir reinigen alles, um Modulkonflikte zu vermeiden (image_498e6f.png)
             pm2 delete next-app || true
             rm -rf node_modules
-            
-            # 2. On installe les dépendances proprement sur Linux AWS
-            # Cela corrige l'erreur de module introuvable et de permission
+
+            # 2. Wir installieren die Abhängigkeiten ordnungsgemäß auf Linux AWS
+            # Dies korrigiert den Fehler des nicht gefundenen Moduls und der Berechtigung
             npm install --production
             chmod -R +x node_modules/.bin
-            
-            # 3. On s'assure que le build est là (image_22faa1.png)
-            if [ ! -d ".next" ]; then echo "❌ Erreur: .next absent"; exit 1; fi
-            
-            # 4. Lancement PM2
+
+            # 3. Wir stellen sicher, dass der Build vorhanden ist (image_22faa1.png)
+            if [ ! -d ".next" ]; then echo "❌ Fehler: .next fehlt"; exit 1; fi
+
+            # 4. PM2 starten
             sudo npm install -g pm2
             pm2 start npm --name "next-app" -- start -- -H 0.0.0.0 -p 3000
             pm2 save
