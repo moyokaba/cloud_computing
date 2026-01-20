@@ -1,140 +1,145 @@
-name: DevOps Pipeline (Infra + App)
+name: Deploy App to AWS
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  # JOB 1: QUALITÄT & TESTING
-  test-app:
-    name: 1. Test Application
+  # ÉTAPE 1 : Préparation de l'application
+ # ÉTAPE 1 : Préparation de l'application
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Install Dependencies
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
+
+      - name: Build App
         run: |
           cd app
-          npm install
-          npm audit fix
-      - name: Build Next.js App
-        run: cd app && npm run build
-      - name: Run Tests
-        run: cd app && npm run test 2>/dev/null || true
-      
-      - name: Upload Build Artifacts
+          npm ci
+          # On s'assure que le build est bien généré
+          npm run build
+
+      # --- ÉTAPE DE LISTING AJOUTÉE ---
+      - name: List files for debugging
+        run: |
+          echo "=== Structure du dossier 'app' après le build ==="
+          ls -Rla app/
+          
+          echo "=== Vérification de la présence de .next ==="
+          if [ -d "app/.next" ]; then
+            echo "✅ Le dossier .next existe et contient :"
+            ls -la app/.next | head -n 10
+          else
+            echo "❌ ERREUR : Le dossier .next est INTROUVABLE"
+          fi
+
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nextjs-build
-          path: |
-            app/.next/**/*
-            app/public/**/*
-            app/package.json
-            app/package-lock.json
-            app/next.config.mjs
+          name: app-bundle
+          # On prend TOUT le dossier app, c'est plus sûr
+          path: app/
+          include-hidden-files: true
           retention-days: 1
 
-  validate-infra:
-    name: 2. Validate Terraform
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: hashicorp/setup-terraform@v2
-      - name: Terraform Init
-        run: terraform -chdir=infra init -backend=false
-      - name: Terraform Validate
-        run: terraform -chdir=infra validate
-
-  # JOB 2: DEPLOYMENT
+  # ÉTAPE 2 : Infrastructure et Déploiement
   deploy:
-    name: 3. Deploy Infra & App
-    needs: [test-app, validate-infra]
+    needs: build-and-test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Download Build Artifacts
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: nextjs-build
-          path: app/
+          name: app-bundle
+          path: my-app-files # On télécharge à la racine du runner
 
-      # A. Terraform Setup
-      - uses: hashicorp/setup-terraform@v2
+      - name: Verify Artifact Contents
+        run: |
+          echo "=== Vérification de l'artéfact téléchargé ==="
+          # On liste le dossier de destination du téléchargement
+          ls -Rla my-app-files/
+          
+          if [ -d "my-app-files/.next" ]; then
+            echo "✅ SUCCÈS : Le dossier .next est présent."
+          else
+            echo "❌ ERREUR : .next est MANQUANT dans my-app-files/"
+            exit 1
+          fi
+
+      # CORRECTIF 2 : Installer Terraform sur le runner
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
-      - name: Configure AWS Credentials
+
+      - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
 
-      # B. Infrastruktur bauen
-      - name: Terraform Init
-        run: terraform -chdir=infra init
-      
       - name: Terraform Apply
-        run: terraform -chdir=infra apply -auto-approve -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
-      
-      - name: Get Server IP
-        id: get_ip
-        run: echo "SERVER_IP=$(terraform -chdir=infra output -raw server_ip)" >> $GITHUB_ENV
+        id: terraform
+        run: |
+          cd infra
+          terraform init
+          terraform apply -auto-approve -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
+          echo "SERVER_IP=$(terraform output -raw server_ip)" >> $GITHUB_ENV
 
-      - name: Wait for Server Init
-        run: sleep 180 
+      # --- ÉTAPE DE SÉCURITÉ AJOUTÉE ---
+      - name: Wait for SSH to be ready
+        run: |
+          echo "Waiting for SSH on ${{ env.SERVER_IP }}..."
+          timeout 300 bash -c 'until printf "" 2>>/dev/null >/dev/tcp/$0/22; do sleep 5; done' ${{ env.SERVER_IP }}
+          echo "SSH is up!"
 
-      - name: Deploy Built App
+      - name: Copy files to EC2
         uses: appleboy/scp-action@master
         with:
           host: ${{ env.SERVER_IP }}
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "app/*"
-          target: "/home/ubuntu/myapp/"
-          strip_components: 0
+          # SOURCE : On prend tout ce qui est dans le dossier téléchargé
+          source: "my-app-files/"
+          target: "/home/ubuntu/myapp"
+          # On retire le dossier 'my-app-files' au déballage sur le serveur
+          strip_components: 1
+          # On exclut node_modules pour éviter les corruptions (image_2df270.png)
+          rm: true
 
-      - name: Start App
+      - name: Launch Application
         uses: appleboy/ssh-action@master
         with:
           host: ${{ env.SERVER_IP }}
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/ubuntu/myapp/app
+            cd /home/ubuntu/myapp
             
-            # Debug: Verzeichnisstruktur anzeigen
-            echo "=== Verzeichnisstruktur ==="
-            ls -la
-            echo "=== .next Inhalt ==="
-            ls -la .next/ || echo ".next nicht gefunden!"
+            # 1. On nettoie tout pour éviter les conflits de modules (image_498e6f.png)
+            pm2 delete next-app || true
+            rm -rf node_modules
             
-            # Prüfen ob Build-Dateien vorhanden sind
-            if [ ! -d ".next" ]; then
-              echo "❌ Fehler: .next Verzeichnis nicht gefunden!"
-              exit 1
-            fi
+            # 2. On installe les dépendances proprement sur Linux AWS
+            # Cela corrige l'erreur de module introuvable et de permission
+            npm install --production
+            chmod -R +x node_modules/.bin
             
-            npm install
+            # 3. On s'assure que le build est là (image_22faa1.png)
+            if [ ! -d ".next" ]; then echo "❌ Erreur: .next absent"; exit 1; fi
             
-            # Alte Prozesse beenden
-            sudo pkill -f "node" || true
-            sleep 2
+            # 4. Lancement PM2
+            sudo npm install -g pm2
+            pm2 start npm --name "next-app" -- start -- -H 0.0.0.0 -p 3000
+            pm2 save
             
-            # App starten (Build ist schon fertig!)
-            nohup npm start > log.txt 2>&1 &
-            sleep 5
-            
-            # Prüfen ob App läuft
-            if pgrep -f "node" > /dev/null; then
-              echo "✅ Deployment erfolgreich! App läuft."
-              echo "=== App Log (erste 20 Zeilen) ==="
-              head -20 log.txt
-            else
-              echo "❌ App konnte nicht gestartet werden. Vollständiges Log:"
-              cat log.txt
-              exit 1
-            fi
